@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin LOKET STORE</title>
+<style>
+:root{--bg:#0b1020;--panel:#121a2e;--panel2:#17223a;--text:#edf2ff;--muted:#9ba9c7;--line:#283653;--accent:#7c5cff;--accent2:#24c8a5;--danger:#ff647c;--warning:#ffc857}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer;border:0;border-radius:10px;padding:10px 14px;font-weight:700;background:var(--accent);color:white}button.secondary{background:#263653}button.danger{background:#6c2438}button.good{background:#146a59}button:disabled{opacity:.5;cursor:not-allowed}input,textarea,select{width:100%;border:1px solid var(--line);background:#0d1528;color:var(--text);border-radius:9px;padding:11px}label{display:block;color:var(--muted);font-size:13px;margin:0 0 6px}.field{margin-bottom:13px}small,.muted{color:var(--muted)}.hidden{display:none!important}.wrap{max-width:1200px;margin:auto;padding:22px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}.brand{font-size:22px;font-weight:900;letter-spacing:.4px}.brand span{color:var(--accent2)}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:18px}.login{max-width:440px;margin:9vh auto}.login h1{margin-top:0}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.stat{padding:17px;border-radius:14px;background:var(--panel2);border:1px solid var(--line)}.stat strong{font-size:27px;display:block}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.tabs button{background:#1b2944}.tabs button.active{background:var(--accent)}.section{display:none}.section.active{display:block}.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:18px}.formrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}.actions{display:flex;gap:8px;flex-wrap:wrap}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:600px}th,td{text-align:left;padding:11px 9px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.pill{display:inline-block;padding:3px 8px;border-radius:999px;background:#263653;font-size:12px}.pill.ok{background:#124f48;color:#91f5df}.pill.off{background:#51273a;color:#ffb0bf}.notice{padding:12px 14px;border-radius:10px;background:#202f4b;color:#dce7ff;margin-bottom:14px}.message{padding:10px 12px;border-radius:9px;margin:10px 0;display:none}.message.show{display:block}.message.error{background:#51273a;color:#ffd8df}.message.success{background:#124f48;color:#b8ffef}.empty{padding:25px;text-align:center;color:var(--muted)}.preview{max-width:100%;max-height:110px;border-radius:8px;display:none;margin-top:8px}.code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;word-break:break-all}.foot{color:var(--muted);font-size:12px;text-align:center;padding:20px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.two{grid-template-columns:1fr}.wrap{padding:14px}.top{align-items:flex-start}.formrow{grid-template-columns:1fr}.card{padding:14px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section id="loginView" class="card login">
+    <div class="brand">LOKET <span>STORE</span></div>
+    <h1>Admin Dashboard</h1>
+    <p class="muted">Masuk menggunakan akun admin yang sudah didaftarkan di Supabase.</p>
+    <div id="loginMsg" class="message"></div>
+    <form id="loginForm">
+      <div class="field"><label for="email">Email admin</label><input id="email" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+      <button type="submit" style="width:100%">Masuk ke Dashboard</button>
+    </form>
+    <p class="muted" style="font-size:12px;margin-bottom:0">Gunakan hanya URL project dan publishable/anon key Supabase. Jangan pernah memasukkan service_role key di halaman ini.</p>
+  </section>
+
+  <main id="appView" class="hidden">
+    <header class="top">
+      <div><div class="brand">LOKET <span>STORE</span></div><div class="muted">Panel pengelolaan event, banner, dan e-ticket</div></div>
+      <div class="actions"><span id="whoami" class="muted"></span><button id="logoutBtn" class="secondary">Keluar</button></div>
+    </header>
+    <div id="globalMsg" class="message"></div>
+    <div class="notice">Perubahan disimpan ke database Supabase. Gambar menggunakan URL publik; unggah gambar ke layanan hosting/storage terlebih dahulu lalu tempelkan URL-nya.</div>
+    <div class="grid">
+      <div class="stat"><span class="muted">Total event</span><strong id="statEvents">—</strong></div>
+      <div class="stat"><span class="muted">Banner aktif</span><strong id="statBanners">—</strong></div>
+      <div class="stat"><span class="muted">E-ticket valid</span><strong id="statTickets">—</strong></div>
+    </div>
+    <nav class="tabs" aria-label="Menu dashboard" style="margin-top:20px">
+      <button class="active" data-tab="events">Event</button><button data-tab="banners">Banner</button><button data-tab="tickets">E-ticket manual</button>
+    </nav>
+
+    <section id="events" class="section active">
+      <div class="two">
+        <div class="card">
+          <h2 id="eventFormTitle" style="margin-top:0">Tambah event</h2>
+          <form id="eventForm">
+            <input id="eventId" type="hidden">
+            <div class="field"><label for="eventTitle">Nama event *</label><input id="eventTitle" required maxlength="180"></div>
+            <div class="field"><label for="eventSlug">Slug (opsional, contoh: konser-jakarta)</label><input id="eventSlug" maxlength="180"></div>
+            <div class="field"><label for="eventDescription">Deskripsi</label><textarea id="eventDescription" rows="3"></textarea></div>
+            <div class="field"><label for="eventVenue">Lokasi / venue</label><input id="eventVenue"></div>
+            <div class="formrow">
+              <div class="field"><label for="eventDate">Tanggal dan waktu</label><input id="eventDate" type="datetime-local"></div>
+              <div class="field"><label for="eventPrice">Harga tiket (Rp)</label><input id="eventPrice" type="number" min="0" step="1" value="0" required></div>
+            </div>
+            <div class="field"><label for="eventImage">URL gambar event</label><input id="eventImage" type="url" placeholder="https://..."></div>
+            <div class="field"><label for="eventStatus">Status</label><select id="eventStatus"><option value="draft">Draft (belum tampil)</option><option value="published">Published (tampil publik)</option><option value="cancelled">Cancelled</option></select></div>
+            <div class="actions"><button type="submit">Simpan event</button><button type="button" id="eventCancel" class="secondary">Bersihkan form</button></div>
+          </form>
+        </div>
+        <div class="card"><h2 style="margin-top:0">Daftar event</h2><div class="tablewrap"><table><thead><tr><th>Event</th><th>Harga</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="eventsRows"></tbody></table></div><div id="eventsEmpty" class="empty hidden">Belum ada event.</div></div>
+      </div>
+    </section>
+
+    <section id="banners" class="section">
+      <div class="two">
+        <div class="card">
+          <h2 style="margin-top:0">Tambah banner</h2>
+          <form id="bannerForm">
+            <div class="field"><label for="bannerTitle">Judul banner *</label><input id="bannerTitle" required maxlength="180"></div>
+            <div class="field"><label for="bannerImage">URL gambar banner *</label><input id="bannerImage" type="url" placeholder="https://..." required><img id="bannerPreview" class="preview" alt="Pratinjau banner"></div>
+            <div class="field"><label for="bannerLink">Link tujuan (opsional)</label><input id="bannerLink" type="url" placeholder="https://..."></div>
+            <div class="field"><label for="bannerPosition">Urutan tampil (angka lebih kecil tampil lebih dulu)</label><input id="bannerPosition" type="number" value="0" step="1"></div>
+            <div class="field"><label><input id="bannerActive" type="checkbox" checked style="width:auto;margin-right:8px">Banner aktif</label></div>
+            <button type="submit">Simpan banner</button>
+          </form>
+        </div>
+        <div class="card"><h2 style="margin-top:0">Daftar banner</h2><div class="tablewrap"><table><thead><tr><th>Banner</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="bannersRows"></tbody></table></div><div id="bannersEmpty" class="empty hidden">Belum ada banner.</div></div>
+      </div>
+    </section>
+
+    <section id="tickets" class="section">
+      <div class="two">
+        <div class="card">
+          <h2 style="margin-top:0">Terbitkan e-ticket manual</h2>
+          <p class="muted">Kode tiket dibuat otomatis dan unik. Setelah diterbitkan, simpan atau salin kode untuk diberikan kepada pembeli.</p>
+          <form id="ticketForm">
+            <div class="field"><label for="ticketEvent">Pilih event *</label><select id="ticketEvent" required><option value="">Memuat event...</option></select></div>
+            <div class="field"><label for="customerName">Nama pembeli *</label><input id="customerName" required maxlength="180"></div>
+            <div class="field"><label for="customerEmail">Email pembeli (opsional)</label><input id="customerEmail" type="email"></div>
+            <button type="submit">Terbitkan e-ticket</button>
+          </form>
+          <div id="ticketIssued" class="notice hidden" style="margin-top:14px"><strong>E-ticket berhasil dibuat</strong><p id="ticketIssuedCode" class="code"></p><div class="actions"><button type="button" id="copyTicket" class="secondary">Salin kode</button><button type="button" id="printTicket" class="good">Cetak tiket</button></div></div>
+        </div>
+        <div class="card"><h2 style="margin-top:0">E-ticket terbaru</h2><div class="tablewrap"><table><thead><tr><th>Kode / pembeli</th><th>Event</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="ticketsRows"></tbody></table></div><div id="ticketsEmpty" class="empty hidden">Belum ada e-ticket.</div></div>
+      </div>
+    </section>
+    <div class="foot">LOKET STORE Admin · Jangan bagikan akses admin kepada orang lain.</div>
+  </main>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+/* SETUP: ganti dua nilai di bawah dari Supabase > Project Settings > API.
+   Gunakan Project URL dan publishable/anon key saja. BUKAN service_role key. */
+const SUPABASE_URL = 'https://pzkznojarbsqnioxifqj.supabase.co/rest/v1/';
+const SUPABASE_ANON_KEY = 'sb_publishable_C8jJWgjf-YdRqQy3sM96Hw__qNIy5E6
+';
+
+const loginView = document.querySelector('#loginView');
+const appView = document.querySelector('#appView');
+const $ = (s) => document.querySelector(s);
+let supabase = null, currentUser = null, eventsCache = [], bannersCache = [], ticketsCache = [], lastTicketCode = '';
+
+function message(el, text, type='success') {
+  el.textContent = text; el.className = `message show ${type}`;
+  if (el.id !== 'loginMsg') setTimeout(() => { el.classList.remove('show'); }, 6000);
+}
+function money(value) {
+  return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(value||0));
+}
+function escapeHTML(value='') {
+  return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function slugify(value='') {
+  return value.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
+function setLoggedIn(user) {
+  currentUser = user;
+  loginView.classList.add('hidden'); appView.classList.remove('hidden');
+  $('#whoami').textContent = user.email || '';
+}
+function setLoggedOut() {
+  currentUser = null; appView.classList.add('hidden'); loginView.classList.remove('hidden');
+}
+function configured() {
+  return SUPABASE_URL.startsWith('https://') && !SUPABASE_URL.includes('PASTE_') && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('PASTE_');
+}
+async function requireAdmin(user) {
+  const {data, error} = await supabase.from('admin_users').select('user_id').eq('user_id', user.id).maybeSingle();
+  if (error) throw error;
+  if (!data) {
+    await supabase.auth.signOut();
+    throw new Error('Akun ini belum terdaftar sebagai admin di tabel admin_users.');
+  }
+}
+async function loadAll() {
+  const [ev, ba, ti] = await Promise.all([
+    supabase.from('events').select('*').order('created_at',{ascending:false}),
+    supabase.from('banners').select('*').order('position',{ascending:true}),
+    supabase.from('tickets').select('*, events(title)').order('issued_at',{ascending:false}).limit(100)
+  ]);
+  if (ev.error) throw ev.error; if (ba.error) throw ba.error; if (ti.error) throw ti.error;
+  eventsCache=ev.data||[]; bannersCache=ba.data||[]; ticketsCache=ti.data||[];
+  renderEvents(); renderBanners(); renderTickets(); renderStats(); renderEventOptions();
+}
+function renderStats() {
+  $('#statEvents').textContent=eventsCache.length;
+  $('#statBanners').textContent=bannersCache.filter(b=>b.active).length;
+  $('#statTickets').textContent=ticketsCache.filter(t=>t.status==='valid').length;
+}
+function renderEvents() {
+  $('#eventsRows').innerHTML=eventsCache.map(e=>`<tr><td><strong>${escapeHTML(e.title)}</strong><br><small>${escapeHTML(e.venue||'')}</small></td><td>${money(e.price)}</td><td><span class="pill ${e.status==='published'?'ok':e.status==='cancelled'?'off':''}">${escapeHTML(e.status)}</span></td><td><div class="actions"><button class="secondary" data-edit-event="${e.id}">Edit</button><button class="danger" data-delete-event="${e.id}">Hapus</button></div></td></tr>`).join('');
+  $('#eventsEmpty').classList.toggle('hidden',eventsCache.length>0);
+}
+function renderBanners() {
+  $('#bannersRows').innerHTML=bannersCache.map(b=>`<tr><td><strong>${escapeHTML(b.title)}</strong><br><small>${escapeHTML(b.image_url)}</small></td><td>${b.position}</td><td><span class="pill ${b.active?'ok':'off'}">${b.active?'Aktif':'Nonaktif'}</span></td><td><div class="actions"><button class="secondary" data-toggle-banner="${b.id}">${b.active?'Nonaktifkan':'Aktifkan'}</button><button class="danger" data-delete-banner="${b.id}">Hapus</button></div></td></tr>`).join('');
+  $('#bannersEmpty').classList.toggle('hidden',bannersCache.length>0);
+}
+function renderTickets() {
+  $('#ticketsRows').innerHTML=ticketsCache.map(t=>`<tr><td><strong class="code">${escapeHTML(t.ticket_code)}</strong><br>${escapeHTML(t.customer_name)}<br><small>${escapeHTML(t.customer_email||'')}</small></td><td>${escapeHTML(t.events?.title||'Event dihapus')}</td><td><span class="pill ${t.status==='valid'?'ok':t.status==='used'?'':'off'}">${escapeHTML(t.status)}</span></td><td>${t.status==='valid'?`<button class="secondary" data-use-ticket="${t.id}">Tandai dipakai</button>`:''}</td></tr>`).join('');
+  $('#ticketsEmpty').classList.toggle('hidden',ticketsCache.length>0);
+}
+function renderEventOptions() {
+  const published=eventsCache.filter(e=>e.status==='published');
+  $('#ticketEvent').innerHTML='<option value="">Pilih event terbit...</option>'+published.map(e=>`<option value="${e.id}">${escapeHTML(e.title)}</option>`).join('');
+}
+function clearEventForm() {
+  $('#eventForm').reset(); $('#eventId').value=''; $('#eventPrice').value='0'; $('#eventStatus').value='draft'; $('#eventFormTitle').textContent='Tambah event';
+}
+function friendlyError(error) { return error?.message || 'Terjadi kesalahan. Periksa koneksi dan kebijakan database.'; }
+
+$('#loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!configured()) { message($('#loginMsg'),'Isi SUPABASE_URL dan SUPABASE_ANON_KEY di dalam file admin.html terlebih dahulu.','error'); return; }
+  if (!supabase) supabase=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  const {data,error}=await supabase.auth.signInWithPassword({email:$('#email').value.trim(),password:$('#password').value});
+  if(error){message($('#loginMsg'),friendlyError(error),'error');return;}
+  try { await requireAdmin(data.user); setLoggedIn(data.user); await loadAll(); }
+  catch(err){message($('#loginMsg'),friendlyError(err),'error');}
+});
+$('#logoutBtn').addEventListener('click',async()=>{if(supabase) await supabase.auth.signOut();setLoggedOut();});
+document.querySelectorAll('[data-tab]').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b===btn));
+  document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id===btn.dataset.tab));
+}));
+$('#eventCancel').addEventListener('click',clearEventForm);
+$('#eventTitle').addEventListener('input',()=>{if(!$('#eventId').value && !$('#eventSlug').dataset.manual) $('#eventSlug').value=slugify($('#eventTitle').value);});
+$('#eventSlug').addEventListener('input',()=>{$('#eventSlug').dataset.manual='1';});
+$('#eventForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const id=$('#eventId').value;
+  const slug=$('#eventSlug').value.trim() || slugify($('#eventTitle').value);
+  const dateVal=$('#eventDate').value;
+  const payload={title:$('#eventTitle').value.trim(),slug:slug||null,description:$('#eventDescription').value.trim(),venue:$('#eventVenue').value.trim(),event_date:dateVal?new Date(dateVal).toISOString():null,price:Number($('#eventPrice').value),image_url:$('#eventImage').value.trim(),status:$('#eventStatus').value,updated_at:new Date().toISOString()};
+  try{
+    const result=id?await supabase.from('events').update(payload).eq('id',id):await supabase.from('events').insert(payload);
+    if(result.error)throw result.error;
+    message($('#globalMsg'),id?'Event berhasil diperbarui.':'Event berhasil ditambahkan.');
+    clearEventForm(); await loadAll();
+  }catch(err){message($('#globalMsg'),friendlyError(err),'error');}
+});
+$('#eventsRows').addEventListener('click',async e=>{
+  const edit=e.target.closest('[data-edit-event]'), del=e.target.closest('[data-delete-event]');
+  if(edit){
+    const item=eventsCache.find(x=>x.id===edit.dataset.editEvent);if(!item)return;
+    $('#eventId').value=item.id;$('#eventTitle').value=item.title||'';$('#eventSlug').value=item.slug||'';$('#eventSlug').dataset.manual='1';
+    $('#eventDescription').value=item.description||'';$('#eventVenue').value=item.venue||'';
+    $('#eventDate').value=item.event_date?new Date(item.event_date).toISOString().slice(0,16):'';
+    $('#eventPrice').value=item.price||0;$('#eventImage').value=item.image_url||'';$('#eventStatus').value=item.status||'draft';$('#eventFormTitle').textContent='Edit event';
+    window.scrollTo({top:0,behavior:'smooth'});return;
+  }
+  if(del && confirm('Hapus event ini? E-ticket terkait dapat mencegah penghapusan.')){
+    const {error}=await supabase.from('events').delete().eq('id',del.dataset.deleteEvent);
+    if(error)message($('#globalMsg'),friendlyError(error),'error');else{message($('#globalMsg'),'Event dihapus.');await loadAll();}
+  }
+});
+$('#bannerImage').addEventListener('input',()=>{const url=$('#bannerImage').value.trim();const img=$('#bannerPreview');img.style.display='none';if(url){img.src=url;img.onload=()=>img.style.display='block';img.onerror=()=>img.style.display='none';}});
+$('#bannerForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const payload={title:$('#bannerTitle').value.trim(),image_url:$('#bannerImage').value.trim(),link_url:$('#bannerLink').value.trim(),position:Number($('#bannerPosition').value||0),active:$('#bannerActive').checked};
+  const {error}=await supabase.from('banners').insert(payload);
+  if(error){message($('#globalMsg'),friendlyError(error),'error');return;}
+  $('#bannerForm').reset();$('#bannerPosition').value='0';$('#bannerActive').checked=true;$('#bannerPreview').style.display='none';
+  message($('#globalMsg'),'Banner berhasil ditambahkan.');await loadAll();
+});
+$('#bannersRows').addEventListener('click',async e=>{
+  const toggle=e.target.closest('[data-toggle-banner]'),del=e.target.closest('[data-delete-banner]');
+  if(toggle){const b=bannersCache.find(x=>x.id===toggle.dataset.toggleBanner);if(!b)return;const {error}=await supabase.from('banners').update({active:!b.active}).eq('id',b.id);if(error)message($('#globalMsg'),friendlyError(error),'error');else await loadAll();}
+  if(del&&confirm('Hapus banner ini?')){const {error}=await supabase.from('banners').delete().eq('id',del.dataset.deleteBanner);if(error)message($('#globalMsg'),friendlyError(error),'error');else await loadAll();}
+});
+function newTicketCode(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='LS-';for(let i=0;i<12;i++)s+=chars[Math.floor(Math.random()*chars.length)];return s;}
+$('#ticketForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const payload={event_id:$('#ticketEvent').value,ticket_code:newTicketCode(),customer_name:$('#customerName').value.trim(),customer_email:$('#customerEmail').value.trim(),status:'valid'};
+  const {data,error}=await supabase.from('tickets').insert(payload).select().single();
+  if(error){message($('#globalMsg'),friendlyError(error),'error');return;}
+  lastTicketCode=data.ticket_code;$('#ticketIssuedCode').textContent=lastTicketCode;$('#ticketIssued').classList.remove('hidden');$('#ticketForm').reset();
+  message($('#globalMsg'),'E-ticket berhasil diterbitkan.');await loadAll();
+});
+$('#copyTicket').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(lastTicketCode);message($('#globalMsg'),'Kode tiket disalin.');}catch{message($('#globalMsg'),'Salin kode ini secara manual: '+lastTicketCode,'error');}});
+$('#printTicket').addEventListener('click',()=>{
+  const code=escapeHTML(lastTicketCode), name=escapeHTML($('#customerName').value||'Pemegang tiket');
+  const w=window.open('','_blank','width=600,height=600');if(!w){message($('#globalMsg'),'Izinkan pop-up untuk mencetak tiket.','error');return;}
+  w.document.write(`<!doctype html><html><head><title>E-ticket ${code}</title><style>body{font:16px Arial;padding:32px;color:#111}.ticket{border:2px dashed #333;border-radius:14px;padding:24px}h1{margin-top:0}code{font-size:22px;word-break:break-all}</style></head><body><div class="ticket"><h1>LOKET STORE</h1><p>E-TICKET</p><p>Nama: ${name}</p><p>Kode tiket:</p><code>${code}</code><p>Simpan kode ini dan tunjukkan saat masuk.</p></div><script>window.onload=()=>window.print()<\/script></body></html>`);w.document.close();
+});
+$('#ticketsRows').addEventListener('click',async e=>{
+  const btn=e.target.closest('[data-use-ticket]');if(!btn||!confirm('Tandai tiket ini sebagai sudah digunakan?'))return;
+  const {error}=await supabase.from('tickets').update({status:'used'}).eq('id',btn.dataset.useTicket);
+  if(error)message($('#globalMsg'),friendlyError(error),'error');else{message($('#globalMsg'),'Status tiket diperbarui.');await loadAll();}
+});
+(async()=>{
+  if(!configured()) return;
+  supabase=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  const {data}=await supabase.auth.getSession();
+  if(data.session){
+    try{await requireAdmin(data.session.user);setLoggedIn(data.session.user);await loadAll();}
+    catch(err){setLoggedOut();message($('#loginMsg'),friendlyError(err),'error');}
+  }
+  supabase.auth.onAuthStateChange((_event,session)=>{if(!session)setLoggedOut();});
+})();
+</script>
+</body>
+</html>
